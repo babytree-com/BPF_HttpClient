@@ -1,0 +1,14 @@
+{
+    "name": "babytree-com/httpclient",
+    "description": "REAL async http/https client for php",
+    "autoload": {
+        "files": ["src/functions_include.php"],
+        "psr-4": {"BPF\\HttpClient\\": "src/"}
+    },
+    "require-dev": {
+    },
+    "require": {
+        "react/socket": "^1.2",
+        "react/http": "^0.8.4"
+    }
+}
