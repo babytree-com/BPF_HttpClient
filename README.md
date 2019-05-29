@@ -9,6 +9,11 @@ composer install babytree-com/httpclient 1.0.0
 ```
 
 ## 使用方法
+### 常规的同步请求
+```php
+TODO:
+```
+
 ### 业务逻辑和http请求异步
 ```php
 use BPF\HttpClient\Psr\RequestOptions;
@@ -29,7 +34,7 @@ $ret = $request_client->getResponse($request_uniq);
 ```
 上例中，业务操作(sleep)和http请求是异步的，与简单的curl相比，运行时间变快了。
 
-### 多个请求异步
+### 业务逻辑和多个请求异步
 ```php
 TODO:
 ```
