@@ -13,6 +13,10 @@ babytree-com/httpclient是宝宝树在复杂业务场景下积累的php http客�
 
 其中，http请求和业务代码的异步执行，是curl_multi和guzzle所不支持的。使用httpclient，在复杂业务场景下，可以将总体代码运行时间进一步缩短，进而提高QPS。
 
+## 依赖
+- php 7.0+
+- 如果要进行单元测试，需要安装phpunit和go
+
 ## 安装
 ```sh
 composer install babytree-com/httpclient 1.0.0
@@ -95,4 +99,15 @@ do {
 // 对请求结果进行业务操作
 // ...
 ```
+
+## 运行单元测试
+```sh
+phpunit tests ./
+```
+
+## 选项
+TODO: 列出选项，如果有必要，可以写个例子
+## 范例
+### 上传文件
+TODO: 上传文件的例子
 
