@@ -12,8 +12,8 @@ use BPF\HttpClient\RequestClient;
 
 final class HttpClientTest extends TestCase {
 
-    protected static $serverPid;
-    protected static $serverUrl = "http://127.0.0.1:18888/sleep";
+    protected static $server_pid;
+    protected static $server_url = "http://127.0.0.1:18888/sleep";
 
     public static function setUpBeforeClass() {
         echo "编译测试服务器，请稍等5秒\n";
@@ -25,51 +25,46 @@ final class HttpClientTest extends TestCase {
         $output = array();
         exec($command, $output);
         sleep(5);
-        self::$serverPid = (int) $output[0];
+        self::$server_pid = (int) $output[0];
     }
 
     public static function tearDownAfterClass() {
-        exec('kill ' . self::$serverPid);
+        exec('kill ' . self::$server_pid);
 	}
 
     public function testAsyncRequest() {
-        //等待服务器准备好
-        sleep(1);
-        $startTime = microtime(true);
+        $start_time = microtime(true);
         $request_client = new RequestClient();
         $options = array(
             //RequestOptions::DEBUG  => null,
         );
-        $request_uniq = $request_client->addRequest(self::$serverUrl, $options, RequestClient::MODE_ASYNC);
+        $request_uniq = $request_client->addRequest(self::$server_url, $options, RequestClient::MODE_ASYNC);
 
         // 这里使用sleep模拟业务操作 
         sleep(1);
         $ret = $request_client->getResponse($request_uniq);
         $this->assertEquals("返回值", $ret, "返回结果错误");
-        $costTime = microtime(true) - $startTime;
+        $cost_time = microtime(true) - $start_time;
         //如果是异步的，那么总时间应该是1秒多点
-        $this->assertLessThan(1.2, $costTime, "耗费的时间为{$costTime}, 超过了1.2秒，异步测试失败");
+        $this->assertLessThan(1.2, $cost_time, "耗费的时间为{$cost_time}, 超过了1.2秒，异步测试失败");
     }
 
     public function testAsyncMultiRequest() {
-        //等待服务器准备好
-        sleep(1);
-        $startTime = microtime(true);
+        $start_time = microtime(true);
         $request_client = new RequestClient();
         $options = array(
             //RequestOptions::DEBUG  => null,
         );
-        $multiUrls = array(
-            self::$serverUrl,
-            self::$serverUrl,
-            self::$serverUrl,
-            self::$serverUrl,
-            self::$serverUrl,
+        $multi_urls = array(
+            self::$server_url,
+            self::$server_url,
+            self::$server_url,
+            self::$server_url,
+            self::$server_url,
         );
         $request_list = array();
-        foreach ($multiUrls as $url) {
-            $options[RequestOptions::TIMEOUT] = 8;
-            $request_uniq = $request_client->addRequest(self::$serverUrl, $options, RequestClient::MODE_ASYNC);
+        foreach ($multi_urls as $url) {
+            $request_uniq = $request_client->addRequest(self::$server_url, $options, RequestClient::MODE_ASYNC);
             $request_list[$request_uniq] = $request_uniq;
         }
 
@@ -92,8 +87,60 @@ final class HttpClientTest extends TestCase {
             }
         } while (true);
 
-        $costTime = microtime(true) - $startTime;
+        $cost_time = microtime(true) - $start_time;
         //如果是异步的，那么总时间应该是1秒多点
-        $this->assertLessThan(1.2, $costTime, "耗费的时间为{$costTime}, 超过了1.2秒，异步测试失败");
+        $this->assertLessThan(1.2, $cost_time, "耗费的时间为{$cost_time}, 超过了1.2秒，异步测试失败");
+    }
+
+    public function testCurlMulti() {
+        $start_time = microtime(true);
+
+        $chs = array();
+        
+        $multi_urls = array(
+            self::$server_url,
+            self::$server_url,
+            self::$server_url,
+            self::$server_url,
+            self::$server_url,
+        );       
+
+        $mh = curl_multi_init();
+        foreach ($multi_urls as $url) {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_HEADER, 0);
+            $chs[] = $ch;
+            curl_multi_add_handle($mh,$ch);
+        }
+
+        $active = null;
+        do {
+            $mrc = curl_multi_exec($mh, $active);
+        }
+        while ($mrc == CURLM_CALL_MULTI_PERFORM);
+
+        while ($active && $mrc == CURLM_OK) {
+            if (curl_multi_select($mh) != -1) {
+                do {
+                    $mrc = curl_multi_exec($mh, $active);
+                } while ($mrc == CURLM_CALL_MULTI_PERFORM);
+            }
+        }
+
+        // 这里使用sleep模拟业务操作 
+        sleep(1);
+
+        foreach ($chs as $ch) {
+            $body = curl_multi_getcontent($ch);
+            $this->assertEquals("返回值", $body, "返回结果错误");
+            curl_multi_remove_handle($mh, $ch);
+        }
+        curl_multi_close($mh); 
+
+        $cost_time = microtime(true) - $start_time;
+        //如果是异步的，那么总时间应该是1秒多点
+        $this->assertGreaterThan(2, $cost_time, "耗费的时间为{$cost_time}, 没有超过了2秒，不符合预期");
     }
 }
