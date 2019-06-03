@@ -11,7 +11,7 @@ babytree-com/httpclient是宝宝树在复杂业务场景下积累的php http客�
 - 全中文文档
 - 线上复杂业务场景下的考验
 
-其中，http请求和业务代码的异步执行，是curl_multi和guzzle所不支持的。使用httpclient，在复杂业务场景下，可以将业务代码的处理时间缩短，进而提高QPS。
+其中，http请求和业务代码的异步执行，是curl_multi和guzzle所不支持的。使用httpclient，在复杂业务场景下，可以将总体代码运行时间进一步缩短，进而提高QPS。
 
 ## 安装
 ```sh
