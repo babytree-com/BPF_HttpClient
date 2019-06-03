@@ -13,16 +13,18 @@ use BPF\HttpClient\RequestClient;
 final class HttpClientTest extends TestCase {
 
     protected static $serverPid;
-    protected static $serverUrl = "http://127.0.0.1:18888/";
+    protected static $serverUrl = "http://127.0.0.1:18888/sleep";
 
-	public static function setUpBeforeClass() {
+    public static function setUpBeforeClass() {
+        echo "编译测试服务器，请稍等5秒\n";
 	    $command = sprintf(
-            'php %s >/dev/null 2>&1 & echo $!',
-            __DIR__."/httpServer.php"
+            'cd %s && go build -o test_server && %s/test_server >/dev/null 2>&1 & echo $!',
+            __DIR__, __DIR__
         );
 
         $output = array();
         exec($command, $output);
+        sleep(5);
         self::$serverPid = (int) $output[0];
     }
 
@@ -42,7 +44,6 @@ final class HttpClientTest extends TestCase {
 
         // 这里使用sleep模拟业务操作 
         sleep(1);
-
         $ret = $request_client->getResponse($request_uniq);
         $this->assertEquals("返回值", $ret, "返回结果错误");
         $costTime = microtime(true) - $startTime;
@@ -72,7 +73,6 @@ final class HttpClientTest extends TestCase {
             $request_list[$request_uniq] = $request_uniq;
         }
 
-        print_r($request_list);
         // 这里使用sleep模拟业务操作 
         sleep(1);
         

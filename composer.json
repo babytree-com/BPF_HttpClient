@@ -8,7 +8,6 @@
     "require-dev": {
     },
     "require": {
-        "react/socket": "^1.2",
-        "react/http": "^0.8.4"
+        "psr/http-message": "1.0.1"
     }
 }
